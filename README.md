@@ -6,9 +6,16 @@
   </a> 
   do szafy wykorzystujące Rasbperry Pi Zero z podłączonym 
   <a href="https://botland.com.pl/ultradzwiekowe-czujniki-odleglosci/5686-ultradzwiekowy-czujnik-odleglosci-hc-sr04-2-200cm-uchwyt-montazowy-5904422308452.html">
-    📐czujnikiem dystansu📏
-  </a> 
+    📐czujnikiem dystansu📏.
+  </a>   
   wraz z zapisem godzin otwarcia do bazdy danych.
+</h4>
+
+<h4>
+Pasek LED zasilany jest osobno z 12V zasilacza i przełączany przez Raspberry Pi za pomocą 
+  <a href="https://botland.com.pl/przekazniki-przekazniki-arduino/8463-modul-przekaznika-1-kanal-styki-10a250vac-cewka-5v-5904422300517.html">
+    ⚡modułu przekaźnika⚡
+  </a>
 </h4>
 
 <h5>Adres IP komputera z bazą danych ma znajdować się w pliku "adres.txt".
