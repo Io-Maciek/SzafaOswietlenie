@@ -27,7 +27,7 @@ def sqlInsertStr(stan, dlugosc, czyStartowe, czyOffline):
 
 def GetConnectionString():
 
-    f = open("/home/Programowanie/Python/adres.txt","r")
+    f = open("adres.txt","r")
     ip = f.readline()
     f.close()
 
@@ -43,7 +43,7 @@ def GetConnectionString():
 
 
 class Zapis:
-    path="/home/Programowanie/Python/temp.txt"
+    path="temp.txt"
 
     conn=None
     polaczenie=None
