@@ -6,7 +6,7 @@
   </a> 
   do szafy wykorzystujące Rasbperry Pi Zero z podłączonym 
   <a href="https://botland.com.pl/ultradzwiekowe-czujniki-odleglosci/5686-ultradzwiekowy-czujnik-odleglosci-hc-sr04-2-200cm-uchwyt-montazowy-5904422308452.html">
-    📐czujnikiem dystansu📏.
+    📐czujnikiem dystansu📏 
   </a>   
   wraz z zapisem godzin otwarcia do bazdy danych.
 </h4>
