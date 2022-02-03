@@ -71,6 +71,7 @@ if __name__ == '__main__':
             time.sleep(2)
         ############################# KONIEC
     except KeyboardInterrupt:
+        sql.connecting_led_off()
         led_off()
         GPIO.cleanup()
         print "Wyłączono"

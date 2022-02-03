@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+import RPi.GPIO as GPIO
 import pyodbc
 import datetime
 import os.path
@@ -49,9 +51,29 @@ class Zapis:
     polaczenie=None
 
     data_sprawdzenie_polaczenia = None
+
+
     minutes_check = 1
 
+
+
+    connecting_led=[35]
+
+    def connecting_led_on(self):
+        for x_on in self.connecting_led:
+            GPIO.output(x_on, GPIO.HIGH)
+
+    def connecting_led_off(self):
+        for x_off in self.connecting_led:
+            GPIO.output(x_off, GPIO.LOW)
+
     def __init__(self):
+        GPIO.setmode(GPIO.BOARD)
+
+        for x in self.connecting_led:
+            GPIO.setup(x, GPIO.OUT)
+        self.connecting_led_off()
+
         try:
             #raise pyodbc.OperationalError
             self.OnConnect()
@@ -86,10 +108,12 @@ class Zapis:
         if self.polaczenie==False:
             if datetime.datetime.now() > self.data_sprawdzenie_polaczenia:
                 try:
+                    self.connecting_led_on()
                     self.OnConnect()
                 except pyodbc.OperationalError:
                     self.OnDisconnect()
-
+                finally:
+                    self.connecting_led_off()
 
 
     def zapisz(self, stan, dlugosc, czyStartowe):
