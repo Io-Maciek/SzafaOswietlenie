@@ -41,3 +41,8 @@ W przypadku braku połączenia program automatycznie zapisuje instrukcje do plik
     <th>bit</th>
   </tr>
  </table>
+<br>
+
+<h3>Diagram połączenia</h3>
+
+![zdjecie](szafa.png)
