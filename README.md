@@ -45,4 +45,4 @@ W przypadku braku połączenia program automatycznie zapisuje instrukcje do plik
 
 <h3>Diagram połączenia</h3>
 
-![zdjecie](szafa.png)
+![zdjecie](szafa_diagram.png)
