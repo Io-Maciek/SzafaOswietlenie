@@ -28,7 +28,8 @@ if __name__ == '__main__':
 
     ### GPIO INICJACJA LEDY ###
 
-    led = [36, 37, 38, 40]
+    led = [38, 40]
+    #led = [36, 37, 38, 40]
     for x in led:
         GPIO.setup(x, GPIO.OUT)
 
