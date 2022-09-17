@@ -14,7 +14,7 @@
 <h4>
 Pasek LED zasilany jest osobno z 12V zasilacza i przełączany przez Raspberry Pi za pomocą 
   <a href="https://eu.mouser.com/ProductDetail/Fujitsu/FTR-C1CA003G?qs=s3tcQNyrmfkYgMQNKN9cBg%3D%3D">
-    ⚡modułu przekaźnika⚡
+    ⚡przekaźnika⚡
   </a>
 </h4>
 
