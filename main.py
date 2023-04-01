@@ -9,6 +9,8 @@ import zapis
 
 ##########################
 
+_DELAY = .5
+
 def led_on():
     for x_on in led:
         GPIO.output(x_on, GPIO.HIGH)
@@ -35,17 +37,16 @@ if __name__ == '__main__':
 
     on = None
     try:
-        d = dis.DIS()
-        if d > 9.5:
-            print "\tWŁĄCZAM\t", datetime.datetime.now()
-            led_on()
-            sql.zapisz(1, d, 1)
-            on = True
-        else:
-            print "\tOFF\t", datetime.datetime.now()
-            sql.zapisz(0, d, 1)
-            led_off()
-            on = False
+        # if d > 9.5:
+        #     print "\tWŁĄCZAM\t", datetime.datetime.now()
+        #     led_on()
+        #     sql.zapisz(1, d, 1)
+        #     on = True
+        # else:
+        #     print "\tOFF\t", datetime.datetime.now()
+        #     sql.zapisz(0, d, 1)
+        #     led_off()
+        #     on = False
 
         ### PROGRAM ###
         while True:
@@ -69,7 +70,7 @@ if __name__ == '__main__':
                     led_off()
                     on = False
 
-            time.sleep(2)
+            time.sleep(_DELAY)
         ############################# KONIEC
     except KeyboardInterrupt:
         sql.connecting_led_off()

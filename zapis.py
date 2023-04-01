@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import pyodbc
 import datetime
 import os.path
+from threading import Thread
 
 class bcolors:
     HEADER = '\033[95m'
@@ -50,7 +51,7 @@ class Zapis:
     conn=None
     polaczenie=None
 
-    data_sprawdzenie_polaczenia = None
+    data_sprawdzenie_polaczenia = datetime.datetime.now()
 
 
     minutes_check = 1
@@ -74,11 +75,19 @@ class Zapis:
             GPIO.setup(x, GPIO.OUT)
         self.connecting_led_off()
 
+        # try:
+        #     #raise pyodbc.OperationalError
+        #     self.OnConnect()
+        # except pyodbc.OperationalError:
+        #     self.OnDisconnect()
+
+    def _start(self):
         try:
             #raise pyodbc.OperationalError
             self.OnConnect()
         except pyodbc.OperationalError:
             self.OnDisconnect()
+
 
 
     def OnConnect(self):
@@ -98,25 +107,39 @@ class Zapis:
     def OnDisconnect(self):
         self.data_sprawdzenie_polaczenia = datetime.datetime.now() + datetime.timedelta(minutes=self.minutes_check)
         self.polaczenie = False
-        print bcolors.WARNING, "NIE POŁĄCZONO Z BAZĄ (zapisywanie do pliku)\n\n", bcolors.ENDC
+        print bcolors.WARNING, "\tNIE POŁĄCZONO Z BAZĄ (zapisywanie do pliku)\n\t(ponowna próba za "+str(self.minutes_check)+" min)", bcolors.ENDC
 
-
-
+    _thread_running=False
 
     #wzywana co każdy pomiar w t.py
     def Callback(self):
-        if self.polaczenie==False:
-            if datetime.datetime.now() > self.data_sprawdzenie_polaczenia:
-                try:
-                    self.connecting_led_on()
-                    self.OnConnect()
-                except pyodbc.OperationalError:
-                    self.OnDisconnect()
-                finally:
-                    self.connecting_led_off()
+        if self.polaczenie!=True:
+            if datetime.datetime.now() > self.data_sprawdzenie_polaczenia and not self._thread_running:
+                self._thread_running = True
+                _t = Thread(target=self._callback_thread)
+                _t.daemon = True
+                _t.start()
+                # try:
+                #     self.connecting_led_on()
+                #     self.OnConnect()
+                # except pyodbc.OperationalError:
+                #     self.OnDisconnect()
+                # finally:
+                #     self.connecting_led_off()
+
+    def _callback_thread(self):
+        try:
+            self.connecting_led_on()
+            self.OnConnect()
+        except pyodbc.OperationalError:
+            self.OnDisconnect()
+        finally:
+            self.connecting_led_off()
+            self._thread_running = False
 
 
     def zapisz(self, stan, dlugosc, czyStartowe):
+        print "test"
         if self.polaczenie:
             try:
                 insert = sqlInsertStr(stan, dlugosc, czyStartowe,0)
@@ -128,6 +151,8 @@ class Zapis:
                 self.doPliku(stan, dlugosc, czyStartowe)
         else:
             self.doPliku(stan,dlugosc,czyStartowe)
+        print "test2"
+
 
 
     def doPliku(self,stan,dlugosc,czyStartowe):
