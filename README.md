@@ -17,8 +17,10 @@ Pasek LED zasilany jest osobno z 12V zasilacza i przełączany przez Raspberry P
     ⚡przekaźnika⚡
   </a>
 </h4>
+<br>
 
-<h5>Adres IP komputera z bazą danych ma znajdować się w pliku "adres.txt".
+<h5>Adres IP komputera, login i hasło użytkownika do bazdy danych mają znajdować się w pliku "adres.txt" (kolejno w nowych linijkach).
+
 W przypadku braku połączenia program automatycznie zapisuje instrukcje do pliku "temp.txt", który automatycznie przesyła dane do bazy i usuwa się po ponownym połączeniu.</h5>
 
 <br>

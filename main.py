@@ -6,10 +6,10 @@ import datetime
 import dis
 import zapis
 
-
 ##########################
 
 _DELAY = .5
+
 
 def led_on():
     for x_on in led:
@@ -31,23 +31,11 @@ if __name__ == '__main__':
     ### GPIO INICJACJA LEDY ###
 
     led = [38, 40]
-    #led = [36, 37, 38, 40]
     for x in led:
         GPIO.setup(x, GPIO.OUT)
 
     on = None
     try:
-        # if d > 9.5:
-        #     print "\tWŁĄCZAM\t", datetime.datetime.now()
-        #     led_on()
-        #     sql.zapisz(1, d, 1)
-        #     on = True
-        # else:
-        #     print "\tOFF\t", datetime.datetime.now()
-        #     sql.zapisz(0, d, 1)
-        #     led_off()
-        #     on = False
-
         ### PROGRAM ###
         while True:
             d = dis.DIS()
