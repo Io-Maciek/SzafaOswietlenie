@@ -13,8 +13,8 @@
 
 <h4>
 Pasek LED zasilany jest osobno z 12V zasilacza i przełączany przez Raspberry Pi za pomocą 
-  <a href="https://botland.com.pl/przekazniki-przekazniki-arduino/8463-modul-przekaznika-1-kanal-styki-10a250vac-cewka-5v-5904422300517.html">
-    ⚡modułu przekaźnika⚡
+  <a href="https://eu.mouser.com/ProductDetail/Fujitsu/FTR-C1CA003G?qs=s3tcQNyrmfkYgMQNKN9cBg%3D%3D">
+    ⚡przekaźnika⚡
   </a>
 </h4>
 
