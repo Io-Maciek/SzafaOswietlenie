@@ -103,7 +103,11 @@ class Zapis:
 
     _thread_running = False
 
-    # wzywana co każdy pomiar w t.py
+    """
+    Wzywana co każdy pomiar w main.py
+    Sprawdza połączenie z bazą danych, ewentualnie próbuje się z nią połączyć
+        na innym procesie
+    """
     def Callback(self):
         if self.polaczenie != True:
             if datetime.datetime.now() > self.data_sprawdzenie_polaczenia and not self._thread_running:
@@ -111,7 +115,6 @@ class Zapis:
                 _t = Thread(target=self._callback_thread)
                 _t.daemon = True
                 _t.start()
-
 
     def _callback_thread(self):
         try:
@@ -138,7 +141,7 @@ class Zapis:
 
     def doPliku(self, stan, dlugosc, czyStartowe):
         insert = sqlInsertStr(stan, dlugosc, czyStartowe, 1)
-        print "Dodano do pliku: ", insert
+        # print "Dodano do pliku: ", insert
         f = open(self.path, "a")
         f.write(insert + "\n")
         f.close()

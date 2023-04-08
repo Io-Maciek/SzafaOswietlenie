@@ -3,13 +3,11 @@
 import RPi.GPIO as GPIO
 import time
 import datetime
-import dis
+from dis import Distance
 import zapis
 
+
 ##########################
-
-_DELAY = .5
-
 
 def led_on():
     for x_on in led:
@@ -20,6 +18,27 @@ def led_off():
     for x_off in led:
         GPIO.output(x_off, GPIO.LOW)
 
+
+def to_on(d):
+    print "\tWŁĄCZAM\t", datetime.datetime.now()
+    led_on()
+    sql.zapisz(1, d, 0)
+
+
+def to_off(d):
+    print "\tOFF\t", datetime.datetime.now()
+    sql.zapisz(0, d, 0)
+    led_off()
+
+
+def alarm_goes_off():
+    pass
+
+
+##########################
+
+_DELAY = .5
+dis = Distance(11, 12, 11.1, alarm_minut=0.1)
 
 if __name__ == '__main__':
     print "URUCHOMIONO...\nTRWA ŁĄCZENIE Z BAZĄ DANYCH"
@@ -38,28 +57,10 @@ if __name__ == '__main__':
     try:
         ### PROGRAM ###
         while True:
-            d = dis.DIS()
-            print d, "\tcm"
-
+            d = dis.check_trigger(to_on, to_off, alarm_goes_off)
+            print round(d, 2), "\tcm"
             sql.Callback()
-
-            if d > 11.1:
-                if not on:
-                    print "\tWŁĄCZAM\t", datetime.datetime.now()
-
-                    led_on()
-                    sql.zapisz(1, d, 0)
-                    on = True
-            else:
-                if on:
-                    print "\tOFF\t", datetime.datetime.now()
-
-                    sql.zapisz(0, d, 0)
-                    led_off()
-                    on = False
-
             time.sleep(_DELAY)
-        ############################# KONIEC
     except KeyboardInterrupt:
         sql.connecting_led_off()
         led_off()
