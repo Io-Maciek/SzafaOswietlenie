@@ -4,7 +4,7 @@ import time
 import datetime
 
 
-class Distance:
+class DistanceSensor:
     def __init__(self, trigger_pin=11, echo_pin=12, distance_trigger=10.0, alarm_minut=0.5):
         GPIO.setmode(GPIO.BOARD)
 
@@ -26,7 +26,7 @@ class Distance:
     """
 
     def measure(self):
-        maxTime = 0.04
+        maxTime = .1#0.04
 
         GPIO.output(self.TRIG, True)
         time.sleep(0.00001)

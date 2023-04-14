@@ -3,8 +3,10 @@
 import RPi.GPIO as GPIO
 import time
 import datetime
-from dis import Distance
+from dis import DistanceSensor
 import zapis
+from serv import Server
+from touch import TouchSensor
 
 
 ##########################
@@ -33,12 +35,23 @@ def to_off(d):
 
 def alarm_goes_off():
     pass
+    
+def touch(x):
+    global is_overwrite_mode, dis
+    dis.is_on = False
+    led_off()
+    is_overwrite_mode = not is_overwrite_mode
+        
+    
 
 
 ##########################
 
 _DELAY = .5
-dis = Distance(11, 12, 11.1, alarm_minut=0.1)
+dis = DistanceSensor(11, 12, 11.1, alarm_minut=0.1)
+
+is_overwrite_mode = False
+touch_sensor = TouchSensor(touch)
 
 if __name__ == '__main__':
     print "URUCHOMIONO...\nTRWA ŁĄCZENIE Z BAZĄ DANYCH"
@@ -55,11 +68,20 @@ if __name__ == '__main__':
 
     on = None
     try:
+        server = Server(debug=True)
+        server.start()
         ### PROGRAM ###
         while True:
-            d = dis.check_trigger(to_on, to_off, alarm_goes_off)
-            print round(d, 2), "\tcm"
-            sql.Callback()
+            if not is_overwrite_mode:
+                d = dis.check_trigger(to_on, to_off, alarm_goes_off)
+                print round(d, 2), "\tcm"
+                server.update(d)
+                sql.Callback()
+            else:
+                d = dis.measure()
+                print round(d, 2), "\tcm (OV)"
+                if d < dis.max_distance:
+                    is_overwrite_mode = False
             time.sleep(_DELAY)
     except KeyboardInterrupt:
         sql.connecting_led_off()
