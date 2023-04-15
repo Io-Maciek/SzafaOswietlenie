@@ -43,6 +43,7 @@
   - [X] Asynchroniczne łączenie z bazą danych
   - [X] Zapisywanie do pliku **temp.txt** w przypadku braku połączenia
   - [X] Przekazywanie informacji z pliku do bazy po ponownym połączeniu
+  - [ ] Wyłączenie łączenia z bazą, jeżeli nie wykryto pliku **adres.txt**
 - [X] Wyłączenie światła po dotknięciu czujnika do czasu zamknięcia szafy lub ponownego dotknięcia (*funkcja nadpisu*)
 - [ ] Mechanizm przypominający o zamknięciu szafy
   - [X] Uruchamianie funkcji po określonym czasie
@@ -52,6 +53,7 @@
   - [X] Uruchomienie serwera za pomocą socketa
   - [ ] Edytowanie konfiguracji programu za pomocą przeglądarki (czas do alarmu, wyłączenie alarmu, głośność)
 - [ ] Stworzenie aplikacji mobilnej do wyświetlania danych i edytowania konfuguracji
+- [ ] Możliwość wyłączenia i włączenia
 
 # Diagram połączenia
 ![zdjecie](szafa_diagram.png)
