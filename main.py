@@ -35,12 +35,18 @@ def to_off(d):
 
 def alarm_goes_off():
     pass
-    
-def touch(x):
-    global is_overwrite_mode, dis
+
+
+def set_override():
+    global is_overwrite_mode, dis, server
     dis.is_on = False
     led_off()
     is_overwrite_mode = not is_overwrite_mode
+    server.update((server.info[0], is_overwrite_mode))
+
+    
+def touch(x):
+    set_override()
         
     
 
@@ -68,20 +74,21 @@ if __name__ == '__main__':
 
     on = None
     try:
-        server = Server(debug=True)
+        server = Server(debug=True, distance_sensor=dis, override=set_override)
         server.start()
         ### PROGRAM ###
         while True:
             if not is_overwrite_mode:
                 d = dis.check_trigger(to_on, to_off, alarm_goes_off)
                 print round(d, 2), "\tcm"
-                server.update(d)
+                server.update((d, is_overwrite_mode))
                 sql.Callback()
             else:
                 d = dis.measure()
                 print round(d, 2), "\tcm (OV)"
-                if d < dis.max_distance:
-                    is_overwrite_mode = False
+                server.update((d, is_overwrite_mode))
+                #if d < dis.max_distance:
+                 #   is_overwrite_mode = False
             time.sleep(_DELAY)
     except KeyboardInterrupt:
         sql.connecting_led_off()
