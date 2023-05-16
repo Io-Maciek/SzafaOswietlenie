@@ -31,8 +31,8 @@ def sqlInsertStr(stan, dlugosc, czyStartowe, czyOffline):
     return ins
 
 
-def GetConnectionString():
-    f = open("/home/Programowanie/Python/SzafaOswietlenie/adres.txt", "r")
+def GetConnectionString(path):
+    f = open(os.path.join(path, 'adres.txt'), "r")
     ip = f.readline().strip()
     login = f.readline().strip()
     password = f.readline().strip()
@@ -48,8 +48,6 @@ def GetConnectionString():
 
 
 class Zapis:
-    path = "/home/Programowanie/Python/SzafaOswietlenie/temp.txt"
-
     conn = None
     polaczenie = None
 
@@ -67,9 +65,10 @@ class Zapis:
         for x_off in self.connecting_led:
             GPIO.output(x_off, GPIO.LOW)
 
-    def __init__(self):
+    def __init__(self, parent_path):
         GPIO.setmode(GPIO.BOARD)
-
+        self._parent_path=parent_path
+        self.path = os.path.join(parent_path, 'temp.txt')
         for x in self.connecting_led:
             GPIO.setup(x, GPIO.OUT)
         self.connecting_led_off()
@@ -82,7 +81,7 @@ class Zapis:
             self.OnDisconnect()
 
     def OnConnect(self):
-        self.conn = pyodbc.connect(GetConnectionString())
+        self.conn = pyodbc.connect(GetConnectionString(self._parent_path))
         self.polaczenie = True
         self.data_sprawdzenie_polaczenia = None
         print bcolors.WARNING, "POŁĄCZONO Z BAZĄ\n\n", bcolors.ENDC

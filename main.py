@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os.path
 
 import RPi.GPIO as GPIO
 import time
@@ -49,7 +50,8 @@ def touch(x):
     set_override()
         
     
-
+_file = os.path.abspath(__file__)
+_parent = os.path.dirname(_file)
 
 ##########################
 
@@ -63,8 +65,12 @@ if __name__ == '__main__':
     print "URUCHOMIONO...\nTRWA ŁĄCZENIE Z BAZĄ DANYCH"
 
     ### BAZA DANYCH ###
-
-    sql = zapis.Zapis()
+    sql = None
+    if os.path.exists(os.path.join(_parent, 'adres.txt')):
+        print 'With SQL'
+        sql = zapis.Zapis(_parent)
+    else:
+        print 'No SQL'
 
     ### GPIO INICJACJA LEDY ###
 
@@ -74,7 +80,7 @@ if __name__ == '__main__':
 
     on = None
     try:
-        server = Server(debug=True, distance_sensor=dis, override=set_override)
+        server = Server(debug=True, distance_sensor=dis, override=set_override, parent_path=_parent)
         server.start()
         ### PROGRAM ###
         while True:
@@ -82,7 +88,8 @@ if __name__ == '__main__':
                 d = dis.check_trigger(to_on, to_off, alarm_goes_off)
                 print round(d, 2), "\tcm"
                 server.update((d, is_overwrite_mode))
-                sql.Callback()
+                if sql is not None:
+                    sql.Callback()
             else:
                 d = dis.measure()
                 print round(d, 2), "\tcm (OV)"
@@ -91,7 +98,8 @@ if __name__ == '__main__':
                  #   is_overwrite_mode = False
             time.sleep(_DELAY)
     except KeyboardInterrupt:
-        sql.connecting_led_off()
+        if sql is not None:
+            sql.connecting_led_off()
         led_off()
         GPIO.cleanup()
         print "Wyłączono"
