@@ -12,16 +12,33 @@
 - [Przekaźnik ⚡](https://eu.mouser.com/ProductDetail/Fujitsu/FTR-C1CA003G?qs=s3tcQNyrmfkYgMQNKN9cBg%3D%3D) (*FTR-C1CA003G*)
 
 &nbsp;&nbsp;Prócz fizycznych elementów opcjonalne są dwa pliki w katalogu projektu:
-- **adres.txt** - jeżeli jest obecny wysyła informacje na temat otwarcia i zamknięcia szafy do bazy danych. Musi zawierać trzy linie:
+#### - **adres.txt** - jeżeli jest obecny wysyła informacje na temat otwarcia i zamknięcia szafy do bazy danych. Musi zawierać trzy linie:
  
 1. Adres IP i port serwera z bazą danych
 2. Login użytkownika
 3. Hasło użytkownika
 
-- **auth.txt** - jeżeli jest obecny wymaga przed wejściem na stronę (czy API) autoryzację za pomocą nagłówka Autorization basic. Musi zawierać dwie linie:
+#### - **auth.txt** - jeżeli jest obecny wymaga przed wejściem na stronę (czy API) autoryzację za pomocą nagłówka Autorization basic. Musi zawierać dwie linie:
  
 1. Login użytkownika
 2. Hasło
+
+#### - **sinricpro_login.txt** - jeżeli jest obecny pozwala na dodanie szafy jako urządzenia w aplikacji [SinricPro](https://portal.sinric.pro/dashboard). Musi mieć trzy linie:
+1. APP_KEY
+2. APP_SECRET
+3. DEVICE_ID
+
+
+### - ***Wymaga minimalnej wersji python-a w wersji 3.9.7***
+
+Aby zainstalować na Raspberry Pi Zero:
+```
+wget https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tar.xz
+cd Python-3.9.7
+./configure --enable-optimizations
+make -j4
+sudo make altinstall
+```
 
 # Struktura tabeli w bazie
 <table>

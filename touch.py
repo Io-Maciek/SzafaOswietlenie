@@ -10,7 +10,7 @@ class TouchSensor:
 
 if __name__ == '__main__':
     def p(x):
-        print 'test', x
+        print ('test' + str(x))
         
     touch_sensor = TouchSensor(p)
     while True:

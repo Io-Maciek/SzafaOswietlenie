@@ -5,6 +5,7 @@ from datetime import datetime
 import base64
 import os
 
+
 class Server:
     def __init__(self, parent_path, distance_sensor, override=lambda: None, port=80, debug=False):
         _auth_file = os.path.join(parent_path, 'auth.txt')
@@ -14,7 +15,7 @@ class Server:
         else:
             self.auth = None
 
-        print self.auth
+        print (self.auth)
 
         self.override = override
         self.distance_sensor = distance_sensor
@@ -24,9 +25,9 @@ class Server:
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.settimeout(0.2)
         self.s.bind(addr)
-        
+
         self._thread = None
-        
+
         self._html = """<!DOCTYPE html>
         <html>
             <head>
@@ -48,10 +49,17 @@ class Server:
 
     def update(self, info):
         self.info = info
-        print self._thread.is_alive()# if not, start again        
+        if not self._thread.is_alive():
+            self.start_thread()
+            print('RESTART')
+
+    # print self._thread.is_alive()# if not, start again
 
     def start(self):
         self.s.listen(1)
+        self.start_thread()
+
+    def start_thread(self):
         self._thread = Thread(target=self._callback, name="szafa_server")
         self._thread.daemon = True
         self._thread.start()
@@ -62,22 +70,29 @@ class Server:
                 cl, addr = self.s.accept()
                 byt = str(cl.recv(4096))
                 URL = byt.split()[1]
+                search_text = 'Authorization: Basic '
+
                 if self.debug:
                     print(URL)
 
-                if 'Authorization' in byt or self.auth is None:
+                if search_text in byt or self.auth is None:
                     # Extract the encoded credentials from the header
                     if self.auth is not None:
-                        encoded_credentials=filter(lambda x: x.startswith('Authorization'), byt.split('\n'))[0][len('Authorization: Basic '):]
+                        search_index = byt.find(search_text)
+                        search_beggining = byt[search_index+len(search_text):]
+                        search_end_text = '\\r\\n'
+                        search_end_index = byt.find(search_end_text)
+                        encoded_credentials = search_beggining[0:search_end_index+len(search_end_text)]
+
                         # Decode the credentials
-                        decoded_credentials = base64.b64decode(encoded_credentials)
+                        decoded_credentials = base64.b64decode(encoded_credentials).decode()
                         # Split the credentials into username and password
                         username, password = decoded_credentials.split(':')
 
                     # Check if the username and password are valid
                     if self.auth is None or (username == self.auth[0] and password == self.auth[1]):
                         if URL == '/':
-                            cl.send('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
+                            cl.send(b'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
 
                             temp = 'Zamknieta'
 
@@ -94,36 +109,36 @@ class Server:
                                 '<h1 style="display: inline;">{} {}</h1> <h3 style="display: inline;">({:.2f} cm)</h3>'.format(
                                     temp, override_str, self.info[0])
 
-                            ))
+                            ).encode("UTF-8"))
                             cl.close()
                         elif URL == '/api':
-                            cl.send('HTTP/1.0 200 OK\r\nContent-type: application/json\r\n\r\n')
+                            cl.send(b'HTTP/1.0 200 OK\r\nContent-type: application/json\r\n\r\n')
                             czas = datetime.now()
                             data = {'czy_nadpis': self.info[1],
                                     'czy_otwarta': self.info[0] > self.distance_sensor.max_distance,
                                     'max_distance': self.distance_sensor.max_distance, 'odleglosc': self.info[0],
                                     'czas': [czas.year, czas.month, czas.day, czas.hour, czas.minute, czas.second]}
-                            cl.send(json.dumps(data))
+                            json_data = json.dumps(data).encode('utf-8')
+                            cl.send(json_data)
                             cl.close()
                         elif URL == '/override':
-                            cl.send('HTTP/1.0 302 OK\r\nLocation: / \r\n\r\n')
+                            cl.send(b'HTTP/1.0 302 OK\r\nLocation: / \r\n\r\n')
                             self.override()
                             cl.close()
                         else:
-                            cl.send('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
-                            cl.send("<h1>ERR 404</h1>")
+                            cl.send(b'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
+                            cl.send(b"<h1>ERR 404</h1>")
                             cl.close()
                     else:
                         # Invalid credentials
                         cl.send(
-                            'HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic realm="Restricted"\r\nContent-type: text/html\r\n\r\n')
-                        cl.send('<h1>401 Unauthorized</h1>')
+                            b'HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic realm="Restricted"\r\nContent-type: text/html\r\n\r\n')
+                        cl.send(b'<h1>401 Unauthorized</h1>')
                         cl.close()
                 else:
-                    cl.send('HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic realm="Restricted"\r\nContent-type: text/html\r\n\r\n')
-                    cl.send('<h1>401 Unauthorized</h1>')
+                    cl.send(b'HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic realm="Restricted"\r\nContent-type: text/html\r\n\r\n')
+                    cl.send(b'<h1>401 Unauthorized</h1>')
                     cl.close()
-
 
             except socket.timeout:
                 pass

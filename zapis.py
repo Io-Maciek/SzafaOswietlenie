@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import RPi.GPIO as GPIO
-import pyodbc
+try:
+    import pyodbc
+    _is_pyodbc_installed = True
+except ModuleNotFoundError:
+    print("PYODBC nie jest zainstalowane!!!")
+    _is_pyodbc_installed = False
 import datetime
 import os.path
 from threading import Thread
@@ -84,9 +89,9 @@ class Zapis:
         self.conn = pyodbc.connect(GetConnectionString(self._parent_path))
         self.polaczenie = True
         self.data_sprawdzenie_polaczenia = None
-        print bcolors.WARNING, "POŁĄCZONO Z BAZĄ\n\n", bcolors.ENDC
+        print(bcolors.WARNING + "POŁĄCZONO Z BAZĄ\n\n" + bcolors.ENDC)
         if os.path.isfile(self.path):
-            print "\t\tZNALEZIONO PLIK\n\n"
+            print ("\t\tZNALEZIONO PLIK\n\n")
             f = open(self.path, "r")
             lines = f.readlines()
             for line in lines:
@@ -97,8 +102,8 @@ class Zapis:
     def OnDisconnect(self):
         self.data_sprawdzenie_polaczenia = datetime.datetime.now() + datetime.timedelta(minutes=self.minutes_check)
         self.polaczenie = False
-        print bcolors.WARNING, "\tNIE POŁĄCZONO Z BAZĄ (zapisywanie do pliku)\n\t(ponowna próba za " + str(
-            self.minutes_check) + " min)", bcolors.ENDC
+        print (bcolors.WARNING + "\tNIE POŁĄCZONO Z BAZĄ (zapisywanie do pliku)\n\t(ponowna próba za " + str(
+            self.minutes_check) + " min)" +bcolors.ENDC)
 
     _thread_running = False
 
@@ -116,20 +121,24 @@ class Zapis:
                 _t.start()
 
     def _callback_thread(self):
-        try:
-            self.connecting_led_on()
-            self.OnConnect()
-        except pyodbc.OperationalError:
-            self.OnDisconnect()
-        finally:
-            self.connecting_led_off()
+        if _is_pyodbc_installed:
+            try:
+                self.connecting_led_on()
+                self.OnConnect()
+            except pyodbc.OperationalError:
+                self.OnDisconnect()
+            finally:
+                self.connecting_led_off()
+                self._thread_running = False
+        else:
             self._thread_running = False
+
 
     def zapisz(self, stan, dlugosc, czyStartowe):
         if self.polaczenie:
             try:
                 insert = sqlInsertStr(stan, dlugosc, czyStartowe, 0)
-                print "Dodano do bazy: ", insert
+                print ("Dodano do bazy: "+ insert)
                 self.conn.cursor().execute(insert)
                 self.conn.commit()
             except pyodbc.Error:

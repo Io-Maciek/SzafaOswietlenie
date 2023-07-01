@@ -3,6 +3,8 @@
 adres.txt
 temp.txt
 auth.txt
+sinricpro_login.txt
+config.json
 
 .idea/
 
@@ -13,3 +15,4 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
