@@ -78,6 +78,7 @@ sudo make altinstall
   - [ ] Edytowanie konfiguracji programu za pomocą przeglądarki (czas do alarmu, wyłączenie alarmu, głośność)
 - [ ] Stworzenie aplikacji mobilnej do wyświetlania danych i edytowania konfuguracji
 - [ ] Możliwość wyłączenia i włączenia
+- [X] Połączenie z aplikacjami typu smart home (Google Home, SinricPro) 
 
 # Diagram połączenia
 ![zdjecie](szafa_diagram.png)
