@@ -5,6 +5,8 @@ from datetime import datetime
 import base64
 import os
 
+from zapis import Zapis
+
 
 class Server:
     def __init__(self, parent_path, distance_sensor, override=lambda: None, port=80, debug=False):
@@ -42,6 +44,16 @@ class Server:
                 <a href='/api'><button style='padding: 0px 25px'><h2>Api</h2></button></a>
                 <br><br>
                 <a href='/override'><button style='padding: 0px 25px'><h2>Override</h2></button></a>
+                <br>
+                <br>
+                <br>
+                <hr>
+                <br>
+                <br>
+                <br>
+                <footer>
+                    <a href='https://github.com/Io-Maciek/SzafaOswietlenie'>Github Repo</a>
+                </footer>
             </body>
         </html>
         """
@@ -49,6 +61,7 @@ class Server:
 
     def update(self, info):
         self.info = info
+
         if not self._thread.is_alive():
             self.start_thread()
             print('RESTART')
@@ -126,7 +139,7 @@ class Server:
                             self.override()
                             cl.close()
                         else:
-                            cl.send(b'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
+                            cl.send(b'HTTP/1.0 404 OK\r\nContent-type: text/html\r\n\r\n')
                             cl.send(b"<h1>ERR 404</h1>")
                             cl.close()
                     else:

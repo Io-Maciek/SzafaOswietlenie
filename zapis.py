@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import RPi.GPIO as GPIO
-try:
-    import pyodbc
-    _is_pyodbc_installed = True
-except ModuleNotFoundError:
-    print("PYODBC nie jest zainstalowane!!!")
-    _is_pyodbc_installed = False
+import mysql.connector
 import datetime
 import os.path
 from threading import Thread
+from info_diode import InfoLED
 
 
 class bcolors:
@@ -24,34 +20,6 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-def dateSQL():
-    terazStr = "'" + str(datetime.datetime.now()) + "'"
-    data = "CONVERT(datetime2, " + terazStr + ")"
-    return data
-
-
-def sqlInsertStr(stan, dlugosc, czyStartowe, czyOffline):
-    ins = 'INSERT INTO Szafa VALUES('
-    ins += dateSQL() + "," + str(stan) + "," + str(dlugosc) + "," + str(czyStartowe) + "," + str(czyOffline) + ")"
-    return ins
-
-
-def GetConnectionString(path):
-    f = open(os.path.join(path, 'adres.txt'), "r")
-    ip = f.readline().strip()
-    login = f.readline().strip()
-    password = f.readline().strip()
-    f.close()
-
-    details = {
-        'server': ip,
-        'database': 'Dom',
-        'username': login,
-        'password': password,
-    }
-    return 'DRIVER={{FreeTDS}};SERVER={server}; DATABASE={database};UID={username};PWD={password};'.format(**details)
-
-
 class Zapis:
     conn = None
     polaczenie = None
@@ -60,60 +28,98 @@ class Zapis:
 
     minutes_check = 1
 
-    connecting_led = [35]
-
     def connecting_led_on(self):
-        for x_on in self.connecting_led:
-            GPIO.output(x_on, GPIO.HIGH)
+        InfoLED.toggle()
 
     def connecting_led_off(self):
-        for x_off in self.connecting_led:
-            GPIO.output(x_off, GPIO.LOW)
+        InfoLED.toggle()
 
-    def __init__(self, parent_path):
+    def __init__(self, parent_path, override):
         GPIO.setmode(GPIO.BOARD)
-        self._parent_path=parent_path
+        InfoLED.init()
+        self._parent_path = parent_path
         self.path = os.path.join(parent_path, 'temp.txt')
-        for x in self.connecting_led:
-            GPIO.setup(x, GPIO.OUT)
-        self.connecting_led_off()
+
+        #self.connecting_led_off()
+        self.set_override = override
+
+        self.sqldb = None
+        self._thread_running = False
+
+        f = open(os.path.join(self._parent_path, 'adres.txt'), "r")
+
+        self._ip = f.readline().strip()
+        self._database = f.readline().strip()
+        self.table = f.readline().strip()
+        self._login = f.readline().strip()
+        self._password = f.readline().strip()
+
+        f.close()
+        self._czy_startowe=True
+        self._on_connect()
+
+    def _get_czy_startowe(self):
+        temp = self._czy_startowe
+        self._czy_startowe = False
+        return temp
 
     def _start(self):
         try:
-            # raise pyodbc.OperationalError
-            self.OnConnect()
-        except pyodbc.OperationalError:
-            self.OnDisconnect()
+            self._on_connect()
+        except Exception as e:
+            print("start fun ||| " + str(e))
+            self._on_disconnect()
 
-    def OnConnect(self):
-        self.conn = pyodbc.connect(GetConnectionString(self._parent_path))
+    def _on_connect(self):
+        self.sqldb = mysql.connector.connect(
+            host=self._ip,
+            user=self._login,
+            password=self._password,
+            database=self._database,
+            port="3306"
+        )
+
         self.polaczenie = True
-        self.data_sprawdzenie_polaczenia = None
+        self.data_sprawdzenie_polaczenia = datetime.datetime.now()
         print(bcolors.WARNING + "POŁĄCZONO Z BAZĄ\n\n" + bcolors.ENDC)
+        
+        mycursor = self.sqldb.cursor()
+
+        mycursor.execute(
+                "INSERT INTO " + self.table + " (Data, Stan, Dlugosc, CzyStartowe, CzyOffline, CzyNadpis) VALUES (%s, %s, %s, %s, false, %s);",
+                (datetime.datetime.now(), True, 37, True, True)
+        )
+
+        self.sqldb.commit()
+
+
         if os.path.isfile(self.path):
-            print ("\t\tZNALEZIONO PLIK\n\n")
+            print("\t\tZNALEZIONO PLIK\n\n")
             f = open(self.path, "r")
             lines = f.readlines()
+            mycursor = self.sqldb.cursor()
             for line in lines:
-                self.conn.cursor().execute(line)
-            self.conn.commit()
+
+                mycursor.execute(
+                    line
+                )
+
+            self.sqldb.commit()
             os.remove(self.path)
 
-    def OnDisconnect(self):
+    def _on_disconnect(self):
         self.data_sprawdzenie_polaczenia = datetime.datetime.now() + datetime.timedelta(minutes=self.minutes_check)
         self.polaczenie = False
-        print (bcolors.WARNING + "\tNIE POŁĄCZONO Z BAZĄ (zapisywanie do pliku)\n\t(ponowna próba za " + str(
-            self.minutes_check) + " min)" +bcolors.ENDC)
+        print(bcolors.WARNING + "\tNIE POŁĄCZONO Z BAZĄ (zapisywanie do pliku)\n\t(ponowna próba za " + str(
+            self.minutes_check) + " min)" + bcolors.ENDC)
 
-    _thread_running = False
-
-    """
-    Wzywana co każdy pomiar w main.py
-    Sprawdza połączenie z bazą danych, ewentualnie próbuje się z nią połączyć
-        na innym procesie
-    """
-    def Callback(self):
-        if self.polaczenie != True:
+    def sql_callback(self):
+        """
+        Wzywana co każdy pomiar w main.py
+        Sprawdza połączenie z bazą danych, ewentualnie próbuje się z nią połączyć
+            na innym procesie
+        """
+        if not self.polaczenie:
             if datetime.datetime.now() > self.data_sprawdzenie_polaczenia and not self._thread_running:
                 self._thread_running = True
                 _t = Thread(target=self._callback_thread)
@@ -121,35 +127,35 @@ class Zapis:
                 _t.start()
 
     def _callback_thread(self):
-        if _is_pyodbc_installed:
-            try:
-                self.connecting_led_on()
-                self.OnConnect()
-            except pyodbc.OperationalError:
-                self.OnDisconnect()
-            finally:
-                self.connecting_led_off()
-                self._thread_running = False
-        else:
+        try:
+            self.connecting_led_on()
+            self._on_connect()
+        except Exception as e:
+            print("Callback exceptions : " + str(e))
+            self._on_disconnect()
+        finally:
+            self.connecting_led_off()
             self._thread_running = False
 
+    def zapisz(self, stan, dlugosc, czyNadpis):
+        try:
+            # insert = sqlInsertStr(stan, dlugosc, czyStartowe, 0)
+            mycursor = self.sqldb.cursor()
 
-    def zapisz(self, stan, dlugosc, czyStartowe):
-        if self.polaczenie:
-            try:
-                insert = sqlInsertStr(stan, dlugosc, czyStartowe, 0)
-                print ("Dodano do bazy: "+ insert)
-                self.conn.cursor().execute(insert)
-                self.conn.commit()
-            except pyodbc.Error:
-                self.OnDisconnect()
-                self.doPliku(stan, dlugosc, czyStartowe)
-        else:
-            self.doPliku(stan, dlugosc, czyStartowe)
+            mycursor.execute(
+                "INSERT INTO " + self.table + " (Data, Stan, Dlugosc, CzyStartowe, CzyOffline, CzyNadpis) VALUES (%s, %s, %s, %s, false, %s);",
+                (datetime.datetime.now(), stan, dlugosc, self._get_czy_startowe(), czyNadpis)
+            )
 
-    def doPliku(self, stan, dlugosc, czyStartowe):
-        insert = sqlInsertStr(stan, dlugosc, czyStartowe, 1)
-        # print "Dodano do pliku: ", insert
+            self.sqldb.commit()
+        except Exception as e:
+            print("zapis exception : " + str(e))
+            self._on_disconnect()
+            query = f"INSERT INTO {self.table} (Data, Stan, Dlugosc, CzyStartowe, CzyOffline, CzyNadpis) VALUES " \
+                    f"('{datetime.datetime.now()}', {stan}, {dlugosc}, {self._get_czy_startowe()}, true, {czyNadpis});"
+            self.do_pliku(query)
+
+    def do_pliku(self, query):
         f = open(self.path, "a")
-        f.write(insert + "\n")
+        f.write(query + "\n")
         f.close()

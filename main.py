@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import os.path
 
 import RPi.GPIO as GPIO
@@ -10,6 +11,9 @@ from serv import Server
 from touch import TouchSensor
 from config import Config
 import sinricpro
+from info_diode import InfoLED
+from email_service import SMTPService
+
 
 ##########################
 
@@ -24,15 +28,21 @@ def led_off():
 
 
 def to_on(d):
-    print ("\tWŁĄCZAM\t"+ str(datetime.datetime.now()))
-    led_on()
-    sql.zapisz(1, d, 0)
+    global is_overwrite_mode
+    if not is_overwrite_mode:
+        print("\tWŁĄCZAM\t" + str(datetime.datetime.now()))
+        led_on()
+    sql.zapisz(1, d, is_overwrite_mode)
+    email_smtp.send_new_status(False)
 
 
 def to_off(d):
-    print ("\tOFF\t"+str(datetime.datetime.now()))
-    sql.zapisz(0, d, 0)
-    led_off()
+    global is_overwrite_mode
+    if not is_overwrite_mode:
+        print("\tOFF\t" + str(datetime.datetime.now()))
+        led_off()
+    sql.zapisz(0, d, is_overwrite_mode)
+    email_smtp.send_new_status(True)
 
 
 def alarm_goes_off():
@@ -40,12 +50,14 @@ def alarm_goes_off():
 
 
 def set_override(from_sinric_thread=False):
-    global is_overwrite_mode, dis, server, config, sinricpro_client
+    global is_overwrite_mode, dis, server, config, sinricpro_client, sql
+    InfoLED.toggle()
     dis.is_on = False
     led_off()
     is_overwrite_mode = not is_overwrite_mode
     config.override = is_overwrite_mode
     server.update((server.info[0], is_overwrite_mode))
+    # sql.Set_Override(is_overwrite_mode)
     config.write()
 
     if not from_sinric_thread:
@@ -54,11 +66,11 @@ def set_override(from_sinric_thread=False):
         else:
             sinricpro_client.off()
 
-    
+
 def touch(x):
     set_override()
-        
-    
+
+
 _file = os.path.abspath(__file__)
 _parent = os.path.dirname(_file)
 
@@ -67,10 +79,11 @@ _parent = os.path.dirname(_file)
 _DELAY = .5
 
 config = Config.read()
-print (config)
+print(config)
 
 dis = DistanceSensor(11, 12, distance_trigger=9.6, alarm_minut=config.alarm)
 is_overwrite_mode = config.override
+InfoLED.init()
 touch_sensor = TouchSensor(touch)
 
 sinricpro_client = sinricpro.SinricproConnection(set_override)
@@ -80,7 +93,6 @@ if not config.override:
 else:
     sinricpro_client.off()
 
-
 if __name__ == '__main__':
 
     print("URUCHOMIONO...\nTRWA ŁĄCZENIE Z BAZĄ DANYCH")
@@ -88,10 +100,14 @@ if __name__ == '__main__':
     ### BAZA DANYCH ###
     sql = None
     if os.path.exists(os.path.join(_parent, 'adres.txt')):
-        print ('With SQL')
-        sql = zapis.Zapis(_parent)
+        print('With SQL')
+        sql = zapis.Zapis(_parent, is_overwrite_mode)
     else:
-        print ('No SQL')
+        print('No SQL')
+
+    print("ŁĄCZĘ Z SERVEREM SMTP:")
+    email_smtp = SMTPService()
+    print(email_smtp.is_working())
 
     ### GPIO INICJACJA LEDY ###
 
@@ -107,16 +123,18 @@ if __name__ == '__main__':
         while True:
             if not is_overwrite_mode:
                 d = dis.check_trigger(to_on, to_off, alarm_goes_off)
-                print (str(round(d, 2))+ "\tcm")
+                print(str(round(d, 2)) + "\tcm")
                 server.update((d, is_overwrite_mode))
                 if sql is not None:
-                    sql.Callback()
+                    sql.sql_callback()
             else:
-                d = dis.measure()
-                print (str(round(d, 2))+ "\tcm (OV)")
+                d = dis.check_trigger(to_on, to_off, alarm_goes_off)
+                print(str(round(d, 2)) + "\tcm (OV)")
                 server.update((d, is_overwrite_mode))
-                #if d < dis.max_distance:
-                 #   is_overwrite_mode = False
+                if sql is not None:
+                    sql.sql_callback()
+                # if d < dis.max_distance:
+                #   is_overwrite_mode = False
             time.sleep(_DELAY)
     except KeyboardInterrupt:
         if sql is not None:
@@ -125,4 +143,4 @@ if __name__ == '__main__':
             config.write()
         led_off()
         GPIO.cleanup()
-        print ("Wyłączono")
+        print("Wyłączono")

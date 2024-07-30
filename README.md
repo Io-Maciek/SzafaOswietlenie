@@ -28,6 +28,15 @@
 2. APP_SECRET
 3. DEVICE_ID
 
+#### - **smtp.txt** - jeżeli jest obecny, wysyła informację na gmail o otwarciu, zamknięciu szafy oraz czasie trwania. Wymagane 4 linie:
+1. Email działający jako serwer SMTP (sender)
+2. Hasło na email (sender)
+3. Email (receiver)
+4. Minimalny czas trwania (w sekundach) statusu, po którym zostanie wysłana wiadomość na mail.
+ 
+W przypadku wykorzystania gmail-a należy włączyć logowanie dwu-etapowe i ustawić [hasło aplikacji](https://support.google.com/mail/answer/185833?hl=en).
+Więcej informacji można [znaleźć tutaj](https://realpython.com/python-send-email/#option-1-setting-up-a-gmail-account-for-development).
+
 
 ### - ***Wymaga minimalnej wersji python-a w wersji 3.9.7***
 
@@ -78,7 +87,7 @@ sudo make altinstall
   - [ ] Edytowanie konfiguracji programu za pomocą przeglądarki (czas do alarmu, wyłączenie alarmu, głośność)
 - [ ] Stworzenie aplikacji mobilnej do wyświetlania danych i edytowania konfuguracji
 - [ ] Możliwość wyłączenia i włączenia
-- [X] Połączenie z aplikacjami typu smart home (Google Home, SinricPro) 
+- [X] Połączenie z aplikacjami typu smart home (Google Home, SinricPro)
 
 # Diagram połączenia
 ![zdjecie](szafa_diagram.png)
