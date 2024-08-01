@@ -11,7 +11,7 @@
 - [Czunik dotyku 👆](https://sklep.avt.pl/czujnik-dotykowy-pojedynczy-ttp223-14x11mm-touch-sensor-do-arduino.html) (*TTP223*)
 - [Przekaźnik ⚡](https://eu.mouser.com/ProductDetail/Fujitsu/FTR-C1CA003G?qs=s3tcQNyrmfkYgMQNKN9cBg%3D%3D) (*FTR-C1CA003G*)
 
-&nbsp;&nbsp;Prócz fizycznych elementów opcjonalne są dwa pliki w katalogu projektu:
+&nbsp;&nbsp;Prócz fizycznych elementów opcjonalne są poniższe pliki w katalogu projektu:
 #### - **adres.txt** - jeżeli jest obecny wysyła informacje na temat otwarcia i zamknięcia szafy do bazy danych. Musi zawierać trzy linie:
  
 1. Adres IP i port serwera z bazą danych
