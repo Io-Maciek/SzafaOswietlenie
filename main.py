@@ -33,7 +33,7 @@ def to_on(d):
         print("\tWŁĄCZAM\t" + str(datetime.datetime.now()))
         led_on()
     sql.zapisz(1, d, is_overwrite_mode)
-    email_smtp.send_new_status(False)
+    email_smtp.send_new_status(True)
 
 
 def to_off(d):
@@ -42,7 +42,7 @@ def to_off(d):
         print("\tOFF\t" + str(datetime.datetime.now()))
         led_off()
     sql.zapisz(0, d, is_overwrite_mode)
-    email_smtp.send_new_status(True)
+    email_smtp.send_new_status(False)
 
 
 def alarm_goes_off():
@@ -95,7 +95,7 @@ else:
 
 if __name__ == '__main__':
 
-    print("URUCHOMIONO...\nTRWA ŁĄCZENIE Z BAZĄ DANYCH")
+    print("URUCHOMIONO...\nTRWA ŁĄCZENIE Z BAZĄ DANYCH:\t", end='')
 
     ### BAZA DANYCH ###
     sql = None
@@ -105,9 +105,9 @@ if __name__ == '__main__':
     else:
         print('No SQL')
 
-    print("ŁĄCZĘ Z SERVEREM SMTP:")
+    print("ŁĄCZĘ Z SERVEREM SMTP:", end='')
     email_smtp = SMTPService()
-    print(email_smtp.is_working())
+    print(f"\t{email_smtp.is_working()}\n")
 
     ### GPIO INICJACJA LEDY ###
 
@@ -143,4 +143,5 @@ if __name__ == '__main__':
             config.write()
         led_off()
         GPIO.cleanup()
+        email_smtp.close()
         print("Wyłączono")
