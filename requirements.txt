@@ -1,0 +1,5 @@
+loguru==0.7.2
+mysql-connector-python==9.0.0
+RPi.GPIO==0.7.1
+sinricpro==2.7.3
+websockets==10.1

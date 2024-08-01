@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     on = None
     try:
-        server = Server(debug=True, distance_sensor=dis, override=set_override, parent_path=_parent)
+        server = Server(debug=True, distance_sensor=dis, override=set_override, parent_path=_parent, port=7999)
         server.start()
         ### PROGRAM ###
         while True:
