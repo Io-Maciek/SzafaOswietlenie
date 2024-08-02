@@ -2,6 +2,7 @@ from sinric import SinricPro, SinricProConstants
 import asyncio
 import os
 from threading import Thread
+from loguru import logger
 
 class SinricproConnection:
     def __init__(self,on_power_state=lambda: None):
@@ -19,6 +20,7 @@ class SinricproConnection:
             self._SWITCH_ID = lines[2].strip()
             self._do_connect = True
         except FileNotFoundError:
+            logger.warning("Nie połączono z usługą SinricPro.")
             self._do_connect = False
 
     def start(self):
@@ -36,10 +38,11 @@ class SinricproConnection:
             return self._client
 
     def _power_state(self, device_id, state):
-        print("GOT SINRIC STATE:\t" + str(state))
+        logger.info(f"Received SinricPro state:\t{state}")
         self._on_power_state(True)
         return True, state
 
+    @logger.catch
     def _callback(self):
         if self._do_connect:
             loop = asyncio.new_event_loop()

@@ -2,6 +2,7 @@
 import RPi.GPIO as GPIO
 import time
 import datetime
+from loguru import logger
 
 
 class DistanceSensor:
@@ -26,7 +27,7 @@ class DistanceSensor:
     """
 
     def measure(self):
-        maxTime = .1#0.04
+        maxTime = .1  # 0.04
 
         GPIO.output(self.TRIG, True)
         time.sleep(0.00001)
@@ -48,17 +49,32 @@ class DistanceSensor:
 
         return pulse_dur * 17150
 
-    def check_trigger(self, changed_to_on, changed_to_off, alarm_trigger=lambda: None):
+    def check_trigger(self, changed_to_on, changed_to_off, is_overwrite_mode, alarm_trigger=lambda: None):
         d = self.measure()
         if d > self.max_distance:
             if not self.is_on:
+                if is_overwrite_mode:
+                    logger.info(f"Włączam oświetlenie.\t{round(d, 2)}cm\t(OV)")
+                else:
+                    logger.info(f"Włączam oświetlenie.\t{round(d, 2)}cm")
                 changed_to_on(d)
                 self._set_alarm = datetime.datetime.now() + datetime.timedelta(minutes=self.minuty_alarm)
                 self.is_on = True
+                return d
             elif datetime.datetime.now() >= self._set_alarm:
                 alarm_trigger()
         else:
             if self.is_on:
+                if is_overwrite_mode:
+                    logger.info(f"Wyłączam oświetlenie.\t{round(d, 2)}cm\t(OV)")
+                else:
+                    logger.info(f"Wyłączam oświetlenie.\t{round(d, 2)}cm")
                 changed_to_off(d)
                 self.is_on = False
+                return d
+
+        # if is_overwrite_mode:
+        #     logger.debug(f"{round(d, 2)}\tcm\t(OV)")
+        # else:
+        #     logger.debug(f"{round(d, 2)}\tcm")
         return d

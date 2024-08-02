@@ -6,6 +6,8 @@ import base64
 import os
 
 from zapis import Zapis
+from loguru import logger
+from loguru import logger
 
 
 class Server:
@@ -17,8 +19,7 @@ class Server:
         else:
             self.auth = None
 
-        print (self.auth)
-
+        logger.debug(f"Serwer/API auth:\t{self.auth}")
         self.override = override
         self.distance_sensor = distance_sensor
         self.debug = debug
@@ -77,6 +78,7 @@ class Server:
         self._thread.daemon = True
         self._thread.start()
 
+    @logger.catch
     def _callback(self):
         while True:
             try:

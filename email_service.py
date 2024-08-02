@@ -1,5 +1,5 @@
 import smtplib, ssl, time, threading, datetime
-
+from loguru import logger
 
 class SMTPService:
     _smtp_server = "smtp.gmail.com"
@@ -51,6 +51,7 @@ class SMTPService:
         threading.Thread(target=self.__thread_send).start()
         return True
 
+    @logger.catch
     def __thread_send(self):
         time.sleep(self.__timer_sec)
         debug = False
@@ -61,8 +62,9 @@ class SMTPService:
             self.__send(time.time() - self.__open_time, debug=debug)
             self.__open_time = time.time()
             self.__waiting_to_send = False
+            logger.success("Wysłano mail-a.")
         else:
-            print("Przestano wysyłac")
+            logger.info("Przestano wysyłać mail-a.")
 
     def __send(self, time_sec, debug=True):
         subject = "Szafa - informacja"
@@ -88,14 +90,13 @@ class SMTPService:
             return False
 
         if try_time > 0:
-            print(f"\t\tŁącze po raz:\t{try_time}")
+            logger.warning(f"Próbuję połączyć ({try_time})")
             self.__try_connect("smtp.txt")
 
         try:
             self.server.sendmail(self.__sender, self.__receiver, f"Subject: {subject}\n\n{message}".encode('utf-8'))
         except Exception as e:
-            print(e)
-            print("Probuje ponownie...")
+            logger.exception("Send email exception?")
             self.close()
             self.__working = True
             self.__send_email(subject, message, try_time + 1)
@@ -104,15 +105,15 @@ class SMTPService:
     def __send_debug(self, subject="Hi there", message="Test message") -> bool:
         if not self.__working:
             return False
-        print(f"Subject: {subject}:::{message}")
+        logger.debug(f"Subject: {subject}:::{message}")
         return True
 
     def close(self) -> bool:
         if self.__working:
             try:
                 self.server.quit()
-            except Exception as e:
-                pass
+            except Exception:
+                logger.exception("Closing exception?")
             self.server = None
             self.__working = False
             return True
