@@ -45,6 +45,8 @@ class Server:
                 <a href='/api'><button style='padding: 0px 25px'><h2>Api</h2></button></a>
                 <br><br>
                 <a href='/override'><button style='padding: 0px 25px'><h2>Override</h2></button></a>
+                <br><br>
+                <a href='/logs'><button style='padding: 0px 25px'><h2>Logs</h2></button></a>
                 <br>
                 <br>
                 <br>
@@ -139,6 +141,16 @@ class Server:
                         elif URL == '/override':
                             cl.send(b'HTTP/1.0 302 OK\r\nLocation: / \r\n\r\n')
                             self.override()
+                            cl.close()
+                        elif URL == '/logs':
+                            if os.path.isfile("logs.log"):
+                                with open("logs.log", "r") as f:
+                                    file_data = f.read()
+                                cl.send(b'HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename="logs.log"\r\n\r\n')
+                                cl.send(file_data.encode())
+                            else:
+                                cl.send(b'HTTP/1.0 404 OK\r\nContent-type: text/html\r\n\r\n')
+                                cl.send(b"<h1>File not found</h1>")
                             cl.close()
                         else:
                             cl.send(b'HTTP/1.0 404 OK\r\nContent-type: text/html\r\n\r\n')
